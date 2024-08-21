@@ -87,19 +87,38 @@ def detect_pose(frame):
 
 
 def draw_keypoints(frame, people_keypoints, people_scores, person_confidences, threshold=0.5):
-    """Draw keypoints for multiple people on the frame using MoveNet MultiPose."""
+    """Draw keypoints for multiple people on the frame and highlight perceived endpoints."""
     height, width, _ = frame.shape
 
-    # Draw keypoints for each detected person
-    for keypoints, scores, (confidence, startX, startY, endX, endY) in zip(people_keypoints, people_scores,
-                                                                           person_confidences):
+    # Define keypoint indices for endpoints (e.g., hands, feet, and head)
+    endpoint_indices = {
+        'left_hand': 9,   # Left wrist
+        'right_hand': 10, # Right wrist
+        'left_foot': 15,  # Left ankle
+        'right_foot': 16, # Right ankle
+        'head': 0         # Nose (can be considered as the head)
+    }
+
+    for keypoints, scores, (confidence, startX, startY, endX, endY) in zip(people_keypoints, people_scores, person_confidences):
+        print(f"Person confidence: {confidence}")
         for i, score in enumerate(scores):
+            print(f"Keypoint {i}: Score = {score}, Position = {keypoints[i]}")
             if score > threshold:
                 y, x = int(keypoints[i][0] * height), int(keypoints[i][1] * width)
-                cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
+                cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)  # Draw each keypoint
 
-        # Draw confidence score on the bounding box
-        cv2.putText(frame, f"Conf: {confidence:.2f}", (startX, startY + 10),
+        # Highlight endpoints
+        for label, index in endpoint_indices.items():
+            if scores[index] > threshold:  # Ensure the endpoint keypoint is above the confidence threshold
+                y, x = int(keypoints[index][0] * height), int(keypoints[index][1] * width)
+                cv2.circle(frame, (x, y), 8, (255, 0, 0), -1)  # Draw a larger, distinct marker for endpoints
+                cv2.putText(frame, label, (x + 5, y - 5),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+
+        # Display the confidence score on the bounding box
+        cv2.putText(frame, f"Conf: {confidence:.2f}", (startX, startY - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 
     return frame
+
+
