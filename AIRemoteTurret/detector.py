@@ -99,7 +99,7 @@ def draw_keypoints(frame, people_keypoints, people_scores, person_confidences, t
                 cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
 
         # Draw confidence score on the bounding box
-        cv2.putText(frame, f"Conf: {confidence:.2f}", (endX, endY + 20),
+        cv2.putText(frame, f"Conf: {confidence:.2f}", (startX, startY + 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 
     return frame

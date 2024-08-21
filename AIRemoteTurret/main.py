@@ -1,10 +1,15 @@
 import cv2
+import time
 from config import DISPLAY_VIDEO
 from diagnostics import get_diagnostics
 from detector import detect_and_estimate, draw_keypoints, detect_pose
 
 # Set up webcam
 cap = cv2.VideoCapture(0)
+
+# Initialize variables for FPS calculation
+frame_count = 0
+start_time = time.time()
 
 while True:
     ret, frame = cap.read()
@@ -22,6 +27,14 @@ while True:
     print(f"Keypoints detected: {people_keypoints}")
     print(f"Scores detected: {people_scores}")
 
+    # Calculate FPS
+    frame_count += 1
+    elapsed_time = time.time() - start_time
+    if elapsed_time > 0:
+        fps = frame_count / elapsed_time
+    else:
+        fps = 0
+
     # Draw keypoints and confidence scores on the frame
     print("Calling draw_keypoints")
     processed_frame = draw_keypoints(processed_frame, people_keypoints, people_scores, person_confidences)
@@ -31,6 +44,8 @@ while True:
 
     if DISPLAY_VIDEO:
         # Display diagnostics on the frame
+        cv2.putText(processed_frame, f"FPS: {fps:.2f}", (10, 70),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         cv2.putText(processed_frame, f"CPU: {cpu_usage:.2f}%", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         cv2.putText(processed_frame, f"RAM: {ram_usage:.2f} MB", (10, 50),
